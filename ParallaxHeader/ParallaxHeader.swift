@@ -18,6 +18,11 @@ private let parallaxHeaderKVOContext = UnsafeMutableRawPointer.allocate(
     alignment: 1
 )
 
+// Delegate protocol for the parallax header events
+public protocol ParallaxHeaderDelegate: AnyObject {
+    func parallaxHeaderDidTap()
+}
+
 class ParallaxView: UIView {
     
     fileprivate weak var parent: ParallaxHeader!
@@ -55,6 +60,8 @@ class ParallaxView: UIView {
  The ParallaxHeader class represents a parallax header for UIScrollView.
  */
 public class ParallaxHeader: NSObject {
+    
+    public weak var delegate: ParallaxHeaderDelegate?
     
     //MARK: properties
     
@@ -96,6 +103,14 @@ public class ParallaxHeader: NSObject {
             let contentView = ParallaxView()
             contentView.parent = self
             contentView.clipsToBounds = true
+            
+            // Add custom view & UITapGestureRecognizer to UIView
+            let customView = UIView(frame: UIScreen.main.bounds)
+            customView.isUserInteractionEnabled = true
+            
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(viewTapped))
+            customView.addGestureRecognizer(tapGesture)
+            contentView.addSubview(customView)
             
             _contentView = contentView
             
@@ -215,6 +230,10 @@ public class ParallaxHeader: NSObject {
         case .bottomFill:
             setBottomFillModeConstraints()
         }
+    }
+    
+    @objc func viewTapped() {
+        delegate?.parallaxHeaderDidTap()
     }
     
     private func setFillModeConstraints() {
